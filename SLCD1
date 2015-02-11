@@ -1,7 +1,7 @@
 #################################################
 # Canine Distemper in Sea lion population model #
 #################################################
-
+#CM: This is a test
 
 time <- 364 # three time steps
 
