@@ -1,8 +1,6 @@
 #################################################
 # Canine Distemper in Sea lion population model #
 #################################################
-#CM: This is a test
-#This is to see if I can edit from your repository--and it looks like I can
 
 time <- 364 # three time steps
 
