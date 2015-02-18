@@ -50,7 +50,7 @@
 	sdd <- 1 - delta # average daily survival of infected individuals
 	muD <- 5e-4 # average daily death of non-infected individuals
 	# time
-	years <- 6
+	years <- 3
 	annum <- 365
 	time <- years*annum
 	BP <- 112
