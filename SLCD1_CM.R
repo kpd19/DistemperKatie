@@ -237,19 +237,14 @@
 				D_SL[k, tt] <- D_func(delta, I_SL, D_SL)
 				TD_SL[k, tt] <- TD_func(delta, S_SL, E_SL, I_SL, R_SL, D_SL, muD)
 			}
-		
-		for (q in 1:packs){
-			totalD[q,n] <- sum(TD_SL[q , t])
-			# totalD[q,n] <- sum(TD_SL[q , ((365*n)):(ifelse((365*n) > ncol(TD_SL) , ((365*n)+365) , (365*n) + ((365*n)-ncol(TD_SL)) ))])
-		  # totalD[q,n] <- TD_SL[q , 365*n] - TD_SL[q, (365*(n-1))]
-		  muB[q , 1:122] <- totalD[q,n]/122
 		}
-		# for (q in 1:packs) {
-		  # totalD[q,n] <- TD_SL[q, 365*n] - TD_SL[q, (365*(n-1) + 1)]
-		  # muB[q] <- totalD[q]/122
-		# }
-		}
-	}
+	 for (q in 1:packs){
+    		thyme <- 365*n
+    		totalalive <- S_SL[q, thyme] + E_SL[q, thyme] + I_SL[q, thyme] + R[q, thyme]  
+    		star <- 22 - total
+    		muB[q, 1:122] <- (star/264)*(1/122)
+    	}
+   	}
 
 # 5. graph it
 	myS <- .colSums(S_D, packs, max(time), na.rm = FALSE)
