@@ -55,8 +55,8 @@
 	time <- years*annum
 	BP <- 112
 	# space
-	island.rows <- 5
-	island.columns <- 5
+	island.rows <- 6
+	island.columns <- 6
 	total.cells <- island.rows*island.columns
 	# populations parameters
 	total.dogs <- 510 # controls the density of dogs per pack
@@ -265,7 +265,7 @@
 	myTD2cum <- .colSums(cumsum(TD_SL), packs, max(time), na.rm = FALSE)
 
 	myTime <- 1:time
-	par(mfrow=c(2,1) , oma = rep(2,4) , mar = c(3,2,0.5,4))
+	par(mfrow=c(2,1) , oma = rep(2,4) , mar = c(3,4,0.5,4))
 	# DOG PLOT
 	plot(myTime, myS, type = "l", xlab = "Time(days)", ylab = "Total DOGS", lwd =2, col="dark green" , ylim = c(0,max(myS)))
 	abline(v = seq(from = 1 , to = time , by = 365) , col = "grey50" , lty = 2 , lwd = 2)
@@ -276,7 +276,7 @@
 	lines(myD, type = "l", col="black", lwd = 2)
 	par(new = T)
 	plot(myTime , myDcum, type = "n" , xaxt = "n" , yaxt = "n" , xlab = "" , ylab = "")
-	lines(myDcum, type = "l", col="black", lwd = 2 , lty = 2)
+	lines(myDcum, type = "l", col="black", lwd = 2 , lty = 3)
 	axis(4)
 	mtext("DOG deaths" , side = 4 , line = 2.5)
 	legend("topright" , legend = c("S" , "E" , "I" , "R" , "D") , col = c("dark green" , "red" , "blue" , "violet" , "black") , lty = 1 , bg = rgb(1,1,1,0.75,,1) , cex = 0.75 , lwd = 1.5)
