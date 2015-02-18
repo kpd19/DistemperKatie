@@ -103,7 +103,7 @@
 	}
 	# create an array for muB
 	muB <- array(0 , dim = c(packs, 365))
-	muB[,1:BP] <- 0
+	muB[,1:BP] <- 0.1
 	# lambda arrays
 	lambda_D <- matrix(0, nrow = packs, ncol = 1) # this is the lambda matrix which resets for every value of time
 	lambda_SL <- matrix(0, nrow = packs, ncol = 1) # this is the lambda matrix which resets for every value of time
@@ -128,7 +128,7 @@
 	    Ival <- I[k, tt-1]
 	    Rval <- R[k, tt-1]
 	    total <- Sval + Eval + Ival + Rval
-	    Sval + muD*total - lambdaval*Sval - muD*Sval # number of susceptibles - (probability of being infected)*Susceptibles
+	    Sval + muD*total + delta*Ival - lambdaval*Sval - muD*Sval
 	  }
 	S_SL_func <- #function for S sealions
 	  function(lambda, S, E, I, R, muD, muB) { 
@@ -272,6 +272,7 @@
 	lines(myI, type = "l", col="blue", lwd = 2)
 	lines(myR, type = "l", col="violet", lwd = 2)
 	lines(myD, type = "l", col="black", lwd = 2)
+	legend("topright" , legend = c("S" , "E" , "I" , "R" , "D") , col = c("dark green" , "red" , "blue" , "violet" , "black") , lty = 1 , bty = "n")
 	# SEALION PLOT
 	plot(myTime, myS2, type = "l", xlab = "Time(days)", ylab = "Total SEA LIONS", lwd = 2, col="dark green")
 	abline(h = 264 , col = "grey50" , lty = 2)
@@ -280,5 +281,6 @@
 	lines(myE2, type = "l", col="red", lwd = 2)
 	lines(myI2, type = "l", col="blue", lwd = 2)
 	lines(myR2, type = "l", col="violet", lwd = 2)
-	lines(myD2, type = "l", col="black", lwd = 2)
+	lines(myD2*10, type = "l", col="black", lwd = 2)
 	lines(myTD2, type = "l", col="green", lwd = 2)
+	legend("topright" , legend = c("S" , "E" , "I" , "R" , "D" , "TD") , col = c("dark green" , "red" , "blue" , "violet" , "black" , "green") , lty = 1 , bty = "n")
