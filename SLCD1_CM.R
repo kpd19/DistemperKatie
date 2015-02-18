@@ -46,14 +46,14 @@
 	beta_prime <- 2.3e-2 # interspecies contact rate
 	sigma <- 1/7 # 1/average latent period
 	gamma <- 1/2 # 1/average infectious period
-	delta <- 3e-2 # death due to disease
+	delta <- 3e-4 # death due to disease
 	sdd <- 1 - delta # average daily survival of infected individuals
-	muD <- 5e-2 # average daily death of non-infected individuals
+	muD <- 5e-4 # average daily death of non-infected individuals
 	# time
 	years <- 3
 	annum <- 365
 	time <- years*annum
-	BP <- 122
+	BP <- 12
 	# space
 	island.rows <- 4
 	island.columns <- 4
@@ -263,7 +263,7 @@
 	myTD2 <- .colSums(TD_SL, packs, max(time), na.rm = FALSE)
 
 	myTime <- 1:time
-	par(mfrow=c(2,1) , oma = rep(2,4) , mar = c(3,4,0.5,0.5))
+	par(mfrow=c(2,1) , oma = rep(2,4) , mar = c(3,4,0.5,4))
 	# DOG PLOT
 	plot(myTime, myS, type = "l", xlab = "Time(days)", ylab = "Total DOGS", lwd =2, col="dark green")
 	abline(v = seq(from = 1 , to = time , by = 365) , col = "grey50" , lty = 2 , lwd = 2)
@@ -271,8 +271,13 @@
 	lines(myE, type="l", col="red", lwd = 2)
 	lines(myI, type = "l", col="blue", lwd = 2)
 	lines(myR, type = "l", col="violet", lwd = 2)
-	lines(myD, type = "l", col="black", lwd = 2)
 	legend("topright" , legend = c("S" , "E" , "I" , "R" , "D") , col = c("dark green" , "red" , "blue" , "violet" , "black") , lty = 1 , bty = "n")
+	par(new = T)
+	plot(myTime , myD, type = "n" , xaxt = "n" , yaxt = "n" , xlab = "" , ylab = "")
+	lines(myD, type = "l", col="black", lwd = 2)
+	axis(4)
+	mtext("DOG deaths" , side = 4 , line = 2.5)
+
 	# SEALION PLOT
 	plot(myTime, myS2, type = "l", xlab = "Time(days)", ylab = "Total SEA LIONS", lwd = 2, col="dark green")
 	abline(h = 264 , col = "grey50" , lty = 2)
@@ -281,6 +286,10 @@
 	lines(myE2, type = "l", col="red", lwd = 2)
 	lines(myI2, type = "l", col="blue", lwd = 2)
 	lines(myR2, type = "l", col="violet", lwd = 2)
-	lines(myD2*10, type = "l", col="black", lwd = 2)
-	lines(myTD2, type = "l", col="green", lwd = 2)
 	legend("topright" , legend = c("S" , "E" , "I" , "R" , "D" , "TD") , col = c("dark green" , "red" , "blue" , "violet" , "black" , "green") , lty = 1 , bty = "n")
+	par(new = T)
+	plot(myTime , myTD2, type = "n" , xaxt = "n" , yaxt = "n" , xlab = "" , ylab = "")
+	lines(myD2, type = "l", col="black", lwd = 2)
+	lines(myTD2, type = "l", col="green", lwd = 2)
+	axis(4)
+	mtext("SEA LION deaths" , side = 4 , line = 2.5)
