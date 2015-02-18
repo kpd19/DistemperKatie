@@ -24,7 +24,7 @@
 		print(x[1:size,(ncol(x)-(size-1)):ncol(x)])
 		print("Bottomright")
 		print(x[(nrow(x)-(size-1)):nrow(x),(ncol(x)-(size-1)):ncol(x)])
-		if (rowcol == T | TRUE) {
+		if (rowcol == T) {
 			print("Firstrow")
 			print(x[1,])
 			print("Lastrow")
@@ -50,9 +50,10 @@
 	sdd <- 1 - delta # average daily survival of infected individuals
 	muD <- 5e-2 # average daily death of non-infected individuals
 	# time
-	time <- 800 # as days
+	years <- 3
 	annum <- 365
-	years <- ceiling(time/annum)
+	time <- years*annum
+	BP <- 122
 	# space
 	island.rows <- 4
 	island.columns <- 4
@@ -102,7 +103,7 @@
 	}
 	# create an array for muB
 	muB <- array(0 , dim = c(packs, 365))
-	muB[,1:122] <- 0.1
+	muB[,1:BP] <- 0.1
 	# lambda arrays
 	lambda_D <- matrix(0, nrow = packs, ncol = 1) # this is the lambda matrix which resets for every value of time
 	lambda_SL <- matrix(0, nrow = packs, ncol = 1) # this is the lambda matrix which resets for every value of time
@@ -122,55 +123,55 @@
 	S_D_func <- #function for S dogs
 	  function(lambda, S, E, I, R, muD) { 
 	    lambdaval <- lambda[i]
-	    Sval <- S[i, t-1]
-	    Eval <- E[i, t-1]
-	    Ival <- I[i, t-1]
-	    Rval <- R[i, t-1]
+	    Sval <- S[k, t-1]
+	    Eval <- E[k, t-1]
+	    Ival <- I[k, t-1]
+	    Rval <- R[k, t-1]
 	    total <- Sval + Eval + Ival + Rval
 	    Sval + muD*total - lambdaval*Sval - muD*Sval # number of susceptibles - (probability of being infected)*Susceptibles
 	  }
 	S_SL_func <- #function for S sealions
 	  function(lambda, S, E, I, R, muD, muB) { 
 	    lambdaval <- lambda[i]
-	    Sval <- S[i, t-1]
-	    Eval <- E[i, t-1]
-	    Ival <- I[i, t-1]
-	    Rval <- R[i, t-1]
+	    Sval <- S[k, t-1]
+	    Eval <- E[k, t-1]
+	    Ival <- I[k, t-1]
+	    Rval <- R[k, t-1]
 	    total <- Sval + Eval + Ival + Rval
 	    Sval + muB - lambdaval*Sval - muD*Sval
 	  }
 	E_func <- # function for the individuals in the exposed class, not get contageous
 	  function(lambda, sigma, S, E, muD){
-	    Eval <- E[i, t-1]
-	    lambdaval <- lambda[i]
-	    Sval <- S[i, t-1]
+	    Eval <- E[k, t-1]
+	    lambdaval <- lambda[k]
+	    Sval <- S[k, t-1]
 	    Eval + lambdaval*Sval - sigma*Eval - muD*Eval
 	  }
 	I_func <- # function for individuals in the infectious class
 	  function (sigma, gamma, delta, E, I, muD) {
-	    Eval <- E[i, t-1]
-	    Ival <- I[i, t-1]
+	    Eval <- E[k, t-1]
+	    Ival <- I[k, t-1]
 	    Ival + sigma*Eval - gamma*Ival - delta*Ival - muD*Ival
 	  }
 	R_func <- # function for individuals in the recovered class
 	  function(gamma, I, R, muD) {
-	    Rval <- R[i, t-1]
-	    Ival <- I[i, t-1]
+	    Rval <- R[k, t-1]
+	    Ival <- I[k, t-1]
 	    Rval + gamma*Ival - muD*Rval
 	  }
 	D_func <- 
 	  function(delta, I, D) {
-	    Ival <- I[i, t-1]
-	    Dval <- D[i, t-1]
+	    Ival <- I[k, t-1]
+	    Dval <- D[k, t-1]
 	    Dval + delta*Ival
 	  }
 	TD_func <- 
 	  function(delta, S, E, I, R, D, muD) {
-	    Sval <- S[i, t-1]
-	    Eval <- E[i, t-1]
-	    Ival <- I[i, t-1]
-	    Rval <- R[i, t-1]
-	    Dval <- D[i, t-1]
+	    Sval <- S[k, t-1]
+	    Eval <- E[k, t-1]
+	    Ival <- I[k, t-1]
+	    Rval <- R[k, t-1]
+	    Dval <- D[k, t-1]
 	    Dval + delta*Ival + muD*Sval + muD*Rval + muD*Eval + muD*Ival
 	  }
 	my_distance_set1 <- function(scale, iRow, iCol, jRow, jCol) {
@@ -238,11 +239,12 @@
 				TD_SL[k, tt] <- TD_func(delta, S_SL, E_SL, I_SL, R_SL, D_SL, muD)
 			}
 		}
+	star <- array(data = NA , dim = c(1 , packs))
 	 for (q in 1:packs){
     		thyme <- 365*n
-    		totalalive <- S_SL[q, thyme] + E_SL[q, thyme] + I_SL[q, thyme] + R[q, thyme]  
-    		star <- 22 - total
-    		muB[q, 1:122] <- (star/264)*(1/122)
+    		totalalive <- S_SL[q, thyme] + E_SL[q, thyme] + I_SL[q, thyme] + R_SL[q, thyme]  
+    		star[,q] <- ifelse(22 - totalalive <= 0 , 22 , 22 - totalalive)
+    		muB[q, 1:BP] <- star[,q]*1/BP
     	}
    	}
 
@@ -261,15 +263,16 @@
 	myTD2 <- .colSums(TD_SL, packs, max(time), na.rm = FALSE)
 
 	myTime <- 1:time
-	par(mfrow=c(2,1) , pin = c(2,2))
+	par(mfrow=c(2,1))
 	# DOG PLOT
-	plot(myTime, myS, type = "l", xlab = "Time(days)", ylab = "Total No. of Individuals", main = "Dogs", lwd =2, col="dark green", ylim=c(0, 550))
+	plot(myTime, myS, type = "l", xlab = "Time(days)", ylab = "Total No. of Individuals", main = "Dogs", lwd =2, col="dark green")
 	lines(myE, type="l", col="red", lwd = 2)
 	lines(myI, type = "l", col="blue", lwd = 2)
 	lines(myR, type = "l", col="violet", lwd = 2)
 	lines(myD, type = "l", col="black", lwd = 2)
 	# SEALION PLOT
-	plot(myTime, myS2, type = "l", xlab = "Time(days)", ylab = "Total No. of Individuals", main = "Sea Lions", lwd = 2, col="dark green", ylim=c(0, 550))
+	plot(myTime, myS2, type = "l", xlab = "Time(days)", ylab = "Total No. of Individuals", main = "Sea Lions", lwd = 2, col="dark green")
+	abline(h = 264 , col = "grey50" , lty = 2)
 	lines(myE2, type = "l", col="red", lwd = 2)
 	lines(myI2, type = "l", col="blue", lwd = 2)
 	lines(myR2, type = "l", col="violet", lwd = 2)
