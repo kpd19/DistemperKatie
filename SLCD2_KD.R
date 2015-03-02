@@ -272,7 +272,7 @@ myE <- .colSums(E_D, packs, max(time), na.rm = FALSE)
 myI <- .colSums(I_D, packs, max(time), na.rm = FALSE)
 myR <- .colSums(R_D, packs, max(time), na.rm = FALSE)
 myD <- .colSums(D_D, packs, max(time), na.rm = FALSE)
-myDcum <- .colSums(cumsum(D_D), packs, max(time), na.rm = FALSE)
+myDcum <- cumsum(.colSums(D_D, packs, max(time), na.rm = FALSE))
 
 myS2 <- .colSums(S_SL, packs, max(time), na.rm = FALSE)
 myE2 <- .colSums(E_SL, packs, max(time), na.rm = FALSE)
@@ -280,8 +280,8 @@ myI2 <- .colSums(I_SL, packs, max(time), na.rm = FALSE)
 myR2 <- .colSums(R_SL, packs, max(time), na.rm = FALSE)
 myD2 <- .colSums(D_SL, packs, max(time), na.rm = FALSE)
 myTD2 <- .colSums(TD_SL, packs, max(time), na.rm = FALSE)
-myD2cum <- .colSums(cumsum(D_SL), packs, max(time), na.rm = FALSE)
-myTD2cum <- .colSums(cumsum(TD_SL), packs, max(time), na.rm = FALSE)
+myD2cum <- cumsum(.colSums(D_SL, packs, max(time), na.rm = FALSE))
+myTD2cum <- cumsum(.colSums(TD_SL, packs, max(time), na.rm = FALSE))
 
 #make a column sum for these to see total alive
 
