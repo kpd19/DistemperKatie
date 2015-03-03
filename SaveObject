@@ -1,0 +1,7 @@
+
+model.results <- array(c(S_D , E_D , I_D , R_D , D_D , S_SL , E_SL , I_SL , R_SL , D_SL , TD_SL) , dim = c(total.cells , time , 11))
+
+obj.directory  <- "[insert directory here]"
+setwd(obj.directory)
+
+save(model.results , file = paste(island.rows , island.columns , years , Sys.time()))
