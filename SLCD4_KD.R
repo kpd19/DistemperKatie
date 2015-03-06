@@ -288,7 +288,6 @@ myD2 <- .colSums(D_SL, packs, max(time), na.rm = FALSE)
 myTD2 <- .colSums(TD_SL, packs, max(time), na.rm = FALSE)
 myD2cum <- cumsum(.colSums(D_SL, packs, max(time), na.rm = FALSE))
 myTD2cum <- cumsum(.colSums(TD_SL, packs, max(time), na.rm = FALSE))
-myE2cum <- cumsum(.colSums(E_SL, packs, max(time), na.rm = FALSE))
 
 
 #make a column sum for these to see total alive
@@ -316,7 +315,6 @@ abline(h = myS2[1] , col = "grey50" , lty = 2)
 abline(v = seq(from = 1 , to = time , by = annum) , col = "grey50" , lty = 2 , lwd = 2)
 abline(v = seq(from = BP , to = time , by = annum) , col = "grey50" , lty = 2)
 lines(myE2, type = "l", col="red", lwd = 2)
-lines(myE2cum, type = "l", col="red", lwd = 2, lty =2)
 lines(myI2, type = "l", col="blue", lwd = 2)
 lines(myR2, type = "l", col="violet", lwd = 2)
 lines(myD2, type = "l", col="black", lwd = 2)
