@@ -77,9 +77,16 @@ for(i in 1:packs){
   S_D[i, 1] <- dogs
 }
 # Adds individuals in pack one to be infected
+innoc.vec <- seq(island.rows+2,((island.rows*(island.columns))-(island.columns+1)), island.rows)
+innoc.seed.list <- vector("list" , length(innoc.vec))
+for(i in 1:length(innoc.vec)){
+	innoc.seed.list[[i]] <- innoc.vec[i]:(innoc.vec[i]+(island.rows-3))
+	innoc.seed <- unlist(innoc.seed.list)
+	}
+seed <- sample(innoc.seed , 1)
 infected.seed <- 1
-S_D[13, 1] <- dogs - infected.seed
-I_D[13, 1] <- infected.seed
+S_D[seed, 1] <- dogs - infected.seed
+I_D[seed, 1] <- infected.seed
 # Matrices for recording sea lion data
 S_SL <- array(0 , dim = c(packs, time)) # susceptibles 
 E_SL <- array(0 , dim = c(packs, time)) # exposed
