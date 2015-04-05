@@ -1,0 +1,305 @@
+#################################################
+#             Single Island Model               #
+#                                               #
+#                    INDEX                      #
+#                0. parameters                  #
+#              1. populate arrays               #
+#               2. calculations                 #
+#         3. initializing caluculations         #
+#               4.  simulation                  #
+#                5. graph it                    #
+#                                               #
+#################################################
+
+rm(list=ls()) # all clear!
+set.seed(pi) # add your favourtite number!
+
+# function to example the corners of large 2D datasets, set rowcol = T to see the preiferal rows and columns
+check <- function(x , size = 3 , rowcol = F){
+  print("Upperleft")
+  print(x[1:size,1:size])
+  print("Bottomleft")
+  print(x[(nrow(x)-(size-1)):nrow(x),1:size])
+  print("Upperright")
+  print(x[1:size,(ncol(x)-(size-1)):ncol(x)])
+  print("Bottomright")
+  print(x[(nrow(x)-(size-1)):nrow(x),(ncol(x)-(size-1)):ncol(x)])
+  if (rowcol == T) {
+    print("Firstrow")
+    print(x[1,])
+    print("Lastrow")
+    print(x[nrow(x),])
+    print("Firscolumn")
+    print(x[,1])
+    print("Lastcolumn")
+    print(x[,ncol(x)])
+  }
+}
+
+# 0. initial conditions
+# model parameters
+epsilon_SL_island2 <- 3 # spatial connectivity for sea lions
+epsilon_SL_island1 <- 4
+scalek_island2 <- 10 # km (each pack occupies a (scale X scale) km^2 grid cell)
+beta_SL_island2 <- 0.16 # intraspecific contact rate for sea lions
+beta_doubleprime <- 2.3e-2 # interspecies contact rate
+sigma_island2 <- 1/7 # 1/average latent period
+gamma_island2 <- 1/2 # 1/average infectious period
+delta_island2 <- 7e-1 # death due to disease
+sdd_island2 <- 1 - delta_island2 # average daily survival of infected individuals
+muD_island2 <- 2.5e-4 # average daily death of non-infected individuals
+myI2 <- array(5, dim = c(1, 365*3))
+importI_SL <- myI2 # this is from the run from island one
+probability = 10
+# time
+
+years <- 3
+annum <- 365
+time <- years*annum
+BP <- 112
+# space
+island.rows <- 7
+island.columns <- 7
+total.cells <- island.rows*island.columns
+# populations parameters
+packs <- total.cells # number of packs of dogs that occupy all cells
+sealions <- 21 # number of sea lions per pack
+#santiago = 514/ 24 (on a 7x7)
+#santacruz = 796
+
+# 1. populate arrays
+
+# Matrices for recording sea lion data
+S_SL <- array(0 , dim = c(packs, time)) # susceptibles 
+E_SL <- array(0 , dim = c(packs, time)) # exposed
+I_SL <- array(0 , dim = c(packs, time)) # infected
+R_SL <- array(0 , dim = c(packs, time)) # recovered
+D_SL <- array(0 , dim = c(packs, time)) # death
+TD_SL <- array(0 , dim = c(packs, time)) # total death
+
+#create an array for birth rate, muB
+muB <- array(0 , dim = c(packs, 365))
+muB[,1:BP] <- 0
+
+#create an array for vaccination
+vac_SL <- array(0 , dim = c(1, 365))
+#vac_SL[] <- x
+
+# adds sea lions on the perimeter
+for(i in 1:(sqrt(packs)+1)) 
+{ S_SL[i, 1] <- sealions
+  muB[i ,1:BP] <- 0.1 
+}
+for(j in 2:(sqrt(packs)-1))
+{ x = (j * sqrt(packs)) 
+  S_SL[x, 1] <- sealions
+  muB[x ,1:BP] <- 0.1
+  y = (j * (sqrt(packs)) +1) 
+  S_SL[y, 1] <- sealions
+  muB[y, 1:BP] <- 0.1
+}
+for(i in (packs - sqrt(packs) + 1):(packs)) 
+{ S_SL[i, 1] <- sealions
+  muB[i ,1:BP] <- 0.1
+}
+
+
+# lambda arrays
+lambda_SL_island2 <- matrix(0, nrow = packs, ncol = 1) # this is the lambda matrix which resets for every value of time
+
+# 2. calculations
+dist_factor <- # function that does the distance dependent part of the lambda equation
+  function(I, epsilon, distance) {
+    Ival <- I[j, tt-1] # can be I_D or I_SL
+    distval <- distance[i, j]
+    Ival*exp(-epsilon*distval) #uses beginning of the equation and puts number in x
+  }
+
+island_factor <- # function that does the distance dependent part of the lambda equation
+  function(I, epsilon) {
+    Ival <- I[tt-1] # can be I_D or I_SL
+    Ival*exp(-epsilon) #uses beginning of the equation and puts number in x
+  }
+
+lambda_func <- # function that finishes the equation once all are calculated
+  function(beta, beta_doubleprime, I, dfval, islandfactor, random_factor){
+    Ival <- I[i, tt-1]  # can be I_D or I_SL
+    1 - exp(-((beta*I + beta*dfval) + (beta_doubleprime*random_factor*islandfactor))) # finishes the lambda equation
+  }
+
+randomgen <-
+  function(probability) {
+    number <- sample(1:probability, 1)
+    ifelse(number > probability -1 , 1 , 0)
+  }
+
+S_SL_func <- #function for S sealions
+  function(lambda, S, E, I, R, muD, muB, vac) { 
+    lambdaval <- lambda[k]
+    Sval_1 <- S[k, tt-1]
+    Eval <- E[k, tt-1]
+    Ival <- I[k, tt-1]
+    Rval <- R[k, tt-1]
+    Sval_2 <- Sval_1 - muD*Sval_1 
+    Sval_3 <- Sval_2 + muB[k, t-1]
+    Sval_4 <- Sval_3 - lambdaval*Sval_3
+    Sval_4 - vac[1, t-1]*Sval_4    
+  }
+E_func <- # function for the individuals in the exposed class, not yet contageous
+  function(lambda, sigma, S, E, muD){
+    Eval_1 <- E[k, tt-1]
+    lambdaval <- lambda[k]
+    Sval <- S[k, tt-1]
+    Eval_2 <- Eval_1 + muD*Eval_1
+    Eval_3 <- Eval_2 - sigma*Eval_2
+    Eval_3 + lambdaval*Sval
+  }
+I_func <- # function for individuals in the infectious class
+  function (sigma, gamma, delta, E, I, muD) {
+    Eval <- E[k, tt-1]
+    Ival_1 <- I[k, tt-1]
+    Ival_2 <- Ival_1 - muD*Ival_1
+    Ival_3 <- Ival_2 - delta*Ival_2
+    Ival_4 <- Ival_3 - gamma*Ival_3 
+    Ival_4 + sigma*Eval
+  }
+R_func <- # function for individuals in the recovered class
+  function(gamma, S, I, R, muD, vac) {
+    Rval_1 <- R[k, tt-1]
+    Ival <- I[k, tt-1]
+    Sval <- S[k, tt-1] 
+    Rval_2 <- Rval_1 - muD*Rval_1
+    Rval_2 + gamma*Ival + vac[1, t-1]*Sval
+  }
+D_func <- 
+  function(delta, I, D) {
+    Ival <- I[k, tt-1]
+    Dval <- D[k, tt-1]
+    delta*Ival
+  }
+TD_func <- 
+  function(delta, S, E, I, R, D, muD) {
+    Sval <- S[k, tt-1]
+    Eval <- E[k, tt-1]
+    Ival <- I[k, tt-1]
+    Rval <- R[k, tt-1]
+    Dval <- D[k, tt-1]
+    delta*Ival + muD*Sval + muD*Rval + muD*Eval + muD*Ival
+  }
+my_distance_set1 <- function(scale, iRow, iCol, jRow, jCol) {
+  scale*sqrt((iRow-jRow)^2 + (iCol-jCol)^2);
+}
+my_distance_set2 <- function(o, scale) {
+  for (i in 1:o){
+    iRow <- ceiling(i/sqrt(o))
+    iCol <- i - (iRow-1)*sqrt(o)
+    for (j in 1:x) {
+      jRow <- ceiling(j/sqrt(o))
+      jCol <- j - (jRow-1)*sqrt(o)
+      dist[i, j] <- my_distance_set1(scale, iRow, iCol, jRow, jCol)
+    }
+  }
+  print(dist)
+}
+
+# 3. initializing caluculations
+sealion_dist <- my_distance_set2(packs, scalek_island2)
+lattice_size <- dim(sealion_dist) # calculates the size to use for i and j (currently 9 and 9)
+
+# 4. simulation
+for (n in 1:years){
+  for (t in 2:(annum+1)){
+    tt <- t + 365*(n-1)
+    for(i in 1:lattice_size[1]){ # starts at pack one and moves through the packs
+      
+      sealion_dfval <- 0 # sets the initial lambda i to be 0 for sea lions
+      interisland_SL <- 0
+      
+      for(j in 1:lattice_size[2]){  # works through the columns starting at 1
+        #sealions
+        y <- dist_factor(I_SL, epsilon_SL_island2, sealion_dist) # this calculates the value that takes into account other packs
+        sealion_dfval <- sealion_dfval + y
+      }
+      #sealions
+      random_factor <- randomgen(probability)
+      interisland_SL <- island_factor(importI_SL, epsilon_SL_island1) 
+      lambda_SL_island2[i] <- lambda_func(beta_SL_island2, beta_doubleprime, I_SL, sealion_dfval, interisland_SL, random_factor)
+    }
+    for(k in 1:lattice_size[1]){# only needs to rotate through i because it doesn't need to reference any other packs, that is done in lambda
+      # sea lions
+      S_SL[k, tt] <- S_SL_func(lambda_SL_island2, S_SL, E_SL, I_SL, R_SL, muD_island2, muB, vac_SL) # records number of susceptibles in the current time step
+      E_SL[k, tt] <- E_func(lambda_SL_island2, sigma_island2, S_SL, E_SL, muD_island2) # records number of exposed in the current time step
+      I_SL[k, tt] <- I_func(sigma_island2, gamma_island2, delta_island2, E_SL, I_SL, muD_island2) # records number of infected in current time step
+      R_SL[k, tt] <- R_func(gamma_island2, S_D, I_SL, R_SL, muD_island2, vac_SL_island2) # records number of recovered individuals in new time step
+      D_SL[k, tt] <- D_func(delta_island2, I_SL, D_SL)
+      TD_SL[k, tt] <- TD_func(delta_island2, S_SL, E_SL, I_SL, R_SL, D_SL, muD_island2)
+    }
+  }
+  star <- array(data = NA , dim = c(1 , packs))
+  for (q in 1:packs){
+    thyme <- 365*n
+    totalalive <- S_SL[q, thyme] + E_SL[q, thyme] + I_SL[q, thyme] + R_SL[q, thyme]  
+    star[,q] <- ifelse(22 - totalalive <= 0 , 22 , 22 - totalalive)
+    muB[q, 1:BP] <- star[,q]*1/BP    
+  }
+  
+  for(a in 1:(sqrt(packs)-1)) 
+  { 
+    for (b in 2:(sqrt(packs)-1)) 
+    { 
+      w = (a*sqrt(packs) + b) 
+      muB[w, 1:BP] <- 0
+    }
+  }
+}
+
+# 5. graph it
+myS <- .colSums(S_SL, packs, max(time), na.rm = FALSE)
+myE <- .colSums(E_SL, packs, max(time), na.rm = FALSE)
+myI <- .colSums(I_SL, packs, max(time), na.rm = FALSE)
+myR <- .colSums(R_SL, packs, max(time), na.rm = FALSE)
+myD <- .colSums(D_SL, packs, max(time), na.rm = FALSE)
+myTD <- .colSums(TD_SL, packs, max(time), na.rm = FALSE)
+myDcum <- cumsum(.colSums(D_SL, packs, max(time), na.rm = FALSE))
+myTDcum <- cumsum(.colSums(TD_SL, packs, max(time), na.rm = FALSE))
+
+#make a column sum for these to see total alive
+
+myTime <- 1:time
+par(mfrow=c(1,1) , oma = rep(2,4) , mar = c(3,4,0.5,4))
+# SEALION PLOT
+plot(myTime, myS, type = "l", xlab = "Time(days)", ylab = "Total SEA LIONS", lwd = 2, col="dark green" , ylim = c(0,max(myS)))
+abline(h = myS[1] , col = "grey50" , lty = 2)
+abline(v = seq(from = 1 , to = time , by = annum) , col = "grey50" , lty = 2 , lwd = 2)
+abline(v = seq(from = BP , to = time , by = annum) , col = "grey50" , lty = 2)
+lines(myE, type = "l", col="red", lwd = 2)
+lines(myI, type = "l", col="blue", lwd = 2)
+lines(myR, type = "l", col="violet", lwd = 2)
+lines(myD, type = "l", col="black", lwd = 2)
+lines(myTD, type = "l", col="orange", lwd = 2)
+par(new = T)
+plot(myTime , myTDcum, type = "n" , xaxt = "n" , yaxt = "n" , xlab = "" , ylab = "")
+lines(myDcum, type = "l", col="black", lwd = 2 , lty = 3)
+lines(myTDcum, type = "l", col="orange", lwd = 2 , lty = 3)
+axis(4)
+mtext("SEA LION deaths" , side = 4 , line = 2.5)
+#legend("topright" , legend = c("S" , "E" , "I" , "R" , "D" , "TD") , col = c("dark green" , "red" , "blue" , "violet" , "black" , "green") , lty = 1 , bg = rgb(1,1,1,0.75,,1) , cex = 0.75 , lwd = 1.5)
+
+# 
+# plot.rows <- 3
+# plot.cols <- 3
+# par(mfrow=c(plot.rows,plot.cols), oma = rep(1,4), mar = rep(0,4))
+# for (f in 1:9)
+# {
+#   sq.matty <- matrix(data = I_SL[,40*f] , nrow = island.rows , ncol = island.columns)
+#   rbPal <- colorRampPalette(c("light grey" , "red"))
+#   col.breaks <- 50
+#   col.pal <- matrix(rbPal(col.breaks)[as.numeric(cut(sq.matty,breaks = col.breaks))] , nrow = island.rows , byrow = F)
+#   
+#   plot(1:island.rows , 1:island.columns , type = "n", xlim = c(0 , island.rows + 1) , ylim = c(0 , island.columns + 1), frame = F, axes = F, xlab = "", ylab = "", lwd = 2)
+#   for (i in 1:island.rows){
+#     for (j in 1:island.columns){
+#       points(i , j , cex = 6.75 , col = col.pal[i,j] , pch = 15)
+#     }
+#   }
+# }
