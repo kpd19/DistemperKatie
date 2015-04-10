@@ -1,0 +1,117 @@
+
+##############################
+#### DISTEMPER GRAPH PLOT ####
+##############################
+
+par(mfrow=c(2,2) , oma = rep(2,4) , mar = c(3,4,0.5,4))
+# DOG PLOT
+plot(myTime, myS, type = "l", xlab = "Time(years)", ylab = "Total DOGS", lwd =2, col="dark green" , ylim = c(0,max(myS)), xaxt = "n")
+axis(1 , at = annum*0:years , labels = 0:years)     
+mtext("Susceptible and Recovered", 3,)
+abline(v = seq(from = 1 , to = time , by = 365) , col = "grey50" , lty = 2 , lwd = 2)
+abline(v = seq(from = 122 , to = time , by = 365) , col = "grey50" , lty = 2)
+lines(myR, type = "l", col="violet", lwd = 2)
+
+# E AND I PLOT DOGS
+plot(myTime, myE, type = "l", xlab = "Time(years)", ylab = "Dogs", lwd = 2, col = "red", ylim = c(0,max(myE)), xaxt = "n")
+axis(1 , at = annum*0:years , labels = 0:years)     
+mtext("Exposed and Infected", 3,)
+abline(h = myE[1] , col = "grey50" , lty = 2)
+abline(v = seq(from = 1 , to = time , by = annum) , col = "grey50" , lty = 2 , lwd = 2)
+abline(v = seq(from = BP , to = time , by = annum) , col = "grey50" , lty = 2)
+lines(myI, type = "l", col = "blue", lwd = 2)
+
+# SEALION PLOT
+plot(myTime, myS2, type = "l", xlab = "Time(years)", ylab = "Total Sea lions", lwd = 2, col="dark green" , ylim = c(0,max(myS2)), xaxt = "n")
+axis(1 , at = annum*0:years , labels = 0:years)     
+abline(h = myS2[1] , col = "grey50" , lty = 2)
+abline(v = seq(from = 1 , to = time , by = annum) , col = "grey50" , lty = 2 , lwd = 2)
+abline(v = seq(from = BP , to = time , by = annum) , col = "grey50" , lty = 2)
+lines(myR2, type = "l", col="violet", lwd = 2)
+
+# E AND I PLOTS FOR SEA LIONS
+plot(myTime, myE2, type = "l", xlab = "Time(years)", ylab = "Sea lions", lwd = 2, col="red" , ylim = c(0,max(myE2)), xaxt = "n")
+axis(1 , at = annum*0:years , labels = 0:years)     
+abline(h = myE2[1] , col = "grey50" , lty = 2)
+abline(v = seq(from = 1 , to = time , by = annum) , col = "grey50" , lty = 2 , lwd = 2)
+abline(v = seq(from = BP , to = time , by = annum) , col = "grey50" , lty = 2)
+lines(myI2, type = "l", col="blue", lwd = 2)
+
+print(myS[3650])
+print(myR[3650])
+print(myS2[3650])
+print(myR2[3650])
+
+###############
+#### DEATH ####
+###############
+
+plot(myTime , myDcum, type = "n" , xaxt = "n" , yaxt = "n" , xlab = "" , ylab = "")
+lines(myDcum, type = "l", col="black", lwd = 2 , lty = 3)
+lines(myTDcum, type = "l", col="dark grey", lwd = 2 , lty = 3)
+
+####################
+#### MATTY PLOT ####
+####################
+
+plot.rows <- 3
+plot.cols <- 3
+par(mfrow=c(plot.rows,plot.cols), oma = rep(1,4), mar = rep(0,4))
+for (f in 1:9)
+{
+  sq.matty <- matrix(data = I_D[,162*f] , nrow = island.rows , ncol = island.columns)
+  rbPal <- colorRampPalette(c("light grey" , "red"))
+  col.breaks <- 50
+  col.pal <- matrix(rbPal(col.breaks)[as.numeric(cut(sq.matty,breaks = col.breaks))] , nrow = island.rows , byrow = F)
+  
+  plot(1:island.rows , 1:island.columns , type = "n", main = paste("t=",200*f,sep=","), xlim = c(0 , island.rows + 1) , ylim = c(0 , island.columns + 1), frame = F, axes = F, xlab = "", ylab = "", lwd = 2)
+  for (i in 1:island.rows){
+    for (j in 1:island.columns){
+      points(i , j , cex = 6.75 , col = col.pal[i,j] , pch = 15)
+    }
+  }
+}
+
+########################
+#### MAX ACROSS PLOT ###
+########################
+
+plot.rows <- 3
+plot.cols <- 3
+breaks <- round(time/(plot.rows*plot.cols),0)
+breaks
+
+plot.arr <- array(I_D[,seq(1,time,breaks)] , dim = c(island.rows, island.columns, plot.rows*plot.cols))
+
+
+rbPal <- colorRampPalette(c("light grey" , "red"))
+min.plot <- min(plot.arr)
+max.plot <- max(plot.arr)
+
+par(mfrow=c(plot.rows,plot.cols), oma = rep(1,4), mar = rep(0.75,4))
+
+for (i in 1:9){
+  image(1:island.rows , 1:island.columns , plot.arr[,,i] , xaxt = "n" , yaxt = "n"  , zlim = c(min.plot , max.plot) , col = rbPal(20))
+  mtext(paste(breaks*i) , 3 , cex = 2/3)
+  legend("topleft",paste("max = ", round(max(plot.arr[,,i]),2)) , cex = 0.75 , bty = "n")
+}
+
+#####################
+#### MAX PER PLOT ###
+#####################
+
+plot.rows <- 3
+plot.cols <- 3
+breaks <- round(time/(plot.rows*plot.cols),0)
+
+rbPal <- colorRampPalette(c("light grey" , "red"))
+
+plot.arr <- array(I_D[,seq(1,time,breaks)] , dim = c(island.rows, island.columns, plot.rows*plot.cols))
+
+par(mfrow=c(plot.rows,plot.cols), oma = rep(1,4), mar = rep(0.75,4))
+
+for (i in 1:9){
+  image( plot.arr[,,i] , xaxt = "n" , yaxt = "n" , col = rbPal(20))
+  mtext( paste(breaks*i) , 3 , cex = 2/3)
+  legend("topleft",paste("max = ", round(max(plot.arr[,,i]),2)) , cex = 0.75 , bty = "n") # note that you can also specify the x-y coor. instead of "topleft")
+}
