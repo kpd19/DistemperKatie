@@ -42,17 +42,24 @@ print(myR[3650])
 print(myS2[3650])
 print(myR2[3650])
 
-###############
-#### DEATH ####
-###############
+##############################
+#### TOTAL POP AND DEATHS ####
+##############################
 
-plot(myTime , myDcum, type = "n" , xaxt = "n" , yaxt = "n" , xlab = "" , ylab = "")
-lines(myDcum, type = "l", col="black", lwd = 2 , lty = 3)
+par(mfrow=c(1,2) , oma = rep(2,4) , mar = c(3,4,0.5,4))
+
+plot(myTime, myDcum, type = "l", xlab = "Time(years)", ylab = "Total DOGS", lwd =2, col="black" , ylim = c(0,max(myDcum)), xaxt = "n")
 lines(myTDcum, type = "l", col="dark grey", lwd = 2 , lty = 3)
+lines(mytotalpopD, type = "l", col="dark blue", lwd = 2, lty = 3)
 
-####################
-#### MATTY PLOT ####
-####################
+plot(myTime, myDcum2, type = "l", xlab = "Time(years)", ylab = "Total DOGS", lwd =2, col="black" , ylim = c(0,max(myDcum2)), xaxt = "n")
+lines(myTDcum2, type = "l", col="dark grey", lwd = 2 , lty = 3)
+lines(mytotalpopSL, type = "l", col="dark blue", lwd = 2, lty = 3)
+
+
+##############################
+####   INITIAL HEAT MAP   ####
+##############################
 
 plot.rows <- 3
 plot.cols <- 3
@@ -72,9 +79,9 @@ for (f in 1:9)
   }
 }
 
-########################
-#### MAX ACROSS PLOT ###
-########################
+##############################
+####    MAX ACROSS PLOT    ###
+##############################
 
 plot.rows <- 3
 plot.cols <- 3
@@ -96,9 +103,9 @@ for (i in 1:9){
   legend("topleft",paste("max = ", round(max(plot.arr[,,i]),2)) , cex = 0.75 , bty = "n")
 }
 
-#####################
-#### MAX PER PLOT ###
-#####################
+##############################
+####      MAX PER PLOT     ###
+##############################
 
 plot.rows <- 3
 plot.cols <- 3
