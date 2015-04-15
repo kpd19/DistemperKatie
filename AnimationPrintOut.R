@@ -18,15 +18,15 @@
   rbPal.D <- colorRampPalette(c("light grey" , "red"))
   rbPal.SL <- colorRampPalette(c("light grey" , "blue"))
 
+# make our own arrays with dimentions rows, columns, times to print
+  plot.arr.SL <- array(I_SL[,seq(1,time,breaks)] , dim = c(island.rows, island.columns, frames))
+  plot.arr.D <- array(I_D[,seq(1,time,breaks)] , dim = c(island.rows, island.columns, frames))
+
 # min and max to set global min and max for heatmap
   min.plot.D <- min(plot.arr.D)
   max.plot.D <- max(plot.arr.D)
   min.plot.SL <- min(plot.arr.SL)
   max.plot.SL <- max(plot.arr.SL)
-
-# make our own arrays with dimentions rows, columns, times to print
-  plot.arr.SL <- array(I_SL[,seq(1,time,breaks)] , dim = c(island.rows, island.columns, frames))
-  plot.arr.D <- array(I_D[,seq(1,time,breaks)] , dim = c(island.rows, island.columns, frames))
 
 ###  GLOBAL ANIMATION ###
   setwd(GlobalMax.wd)
